@@ -1,0 +1,6 @@
+
+#include <lua-cpp-utils/@HEADER@>
+
+int main(int /*argc*/, char* /*argv*/[]) {
+	return 0;
+}
