@@ -4,7 +4,8 @@
 # Iowa State University HCI Graduate Program/VRAC
 
 set(ALLHEADERS
-	LuaGCBlock.h)
+	LuaGCBlock.h
+	LuaUserdata.h)
 set(ALLHEADERS ${ALLHEADERS} PARENT_SCOPE)
 
 add_custom_target(lua-cpp-utils SOURCES ${HEADERS})
