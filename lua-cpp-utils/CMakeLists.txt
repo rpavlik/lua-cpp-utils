@@ -5,6 +5,7 @@
 
 set(ALLHEADERS
 	LuaGCBlock.h
+	LuaStackChecker.h
 	LuaUserdata.h)
 set(ALLHEADERS ${ALLHEADERS} PARENT_SCOPE)
 
