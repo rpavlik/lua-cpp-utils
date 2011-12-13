@@ -47,6 +47,13 @@ extern "C" {
 #	define LUA_USERDATA_VERBOSE(X) {}
 #endif
 
+#ifdef ENABLE_LUA_USERDATA_STACKCHECKER
+#	include "LuaStackChecker.h"
+#	define LUA_USERDATA_STACKCHECKER(NAME, STATE, EXPECTEDDIFF) StackChecker<> NAME(STATE, __FILE__, __LINE__, EXPECTEDDIFF)
+#else
+#	define LUA_USERDATA_STACKCHECKER(NAME, STATE, EXPECTEDDIFF)
+#endif
+
 namespace luacpputils {
 	/// base class providing string constants.
 	/// @internal
@@ -81,6 +88,7 @@ namespace luacpputils {
 			}
 
 			static void _pushMetatable(lua_State * L) {
+				LUA_USERDATA_STACKCHECKER(checker, L, 1);
 				if (luaL_newmetatable(L, _getRegistryString())) {
 					LUA_USERDATA_VERBOSE("Userdata type " << _getRegistryString << ":\t" << "Registering garbage collection metamethod");
 					lua_pushvalue(L, -1);
@@ -88,11 +96,15 @@ namespace luacpputils {
 					lua_setfield(L, -2, gcMetamethodName()); /// table is one below the top of the stack
 					lua_pop(L, 1); /// pop the metatable off the stack.
 					//NonConstInstanceMethod::template registerMetamethod <&Derived::~Derived> (L, );
-					Derived::registerAdditionalMetamethods(L);
+					{
+						LUA_USERDATA_STACKCHECKER(derivedchecker, L, 0);
+						Derived::registerAdditionalMetamethods(L);
+					}
 				}
 			}
 
 			static void _pushIndexTable(lua_State * L) {
+				LUA_USERDATA_STACKCHECKER(checker, L, 1);
 				_pushMetatable(L);
 
 				int metatableIndex = lua_gettop(L);
@@ -128,6 +140,7 @@ namespace luacpputils {
 			}
 
 			static PointerToDerivedType _allocateInLua(lua_State * L, PointerToDerivedType instance) {
+				LUA_USERDATA_STACKCHECKER(checker, L, 1);
 				LUA_USERDATA_VERBOSE("Userdata " << instance << ":\t" << "Created instance of type " << _getRegistryString());
 				void * ud = lua_newuserdata(L, sizeof(PointerToDerivedType));
 				if (!ud) {
@@ -169,12 +182,14 @@ namespace luacpputils {
 				public:
 					template<PtrToMemberFuncType M>
 					static void pushInstanceMethod(lua_State * L, int upvalues = 0) {
+						LUA_USERDATA_STACKCHECKER(checker, L, 1);
 						LUA_USERDATA_VERBOSE("Userdata type " << _getRegistryString() << ":\tMethod " << _getMethodDescription<M>() << "\t" << "Pushing an instance method");
 						lua_pushcclosure(L, &_callInstanceMethod<M>, upvalues);
 					}
 
 					template<PtrToMemberFuncType M>
 					static void registerMetamethod(lua_State * L, const char * metamethodName) {
+						LUA_USERDATA_STACKCHECKER(checker, L, 0);
 						LUA_USERDATA_VERBOSE("Userdata type " << _getRegistryString << ":\tMethod " << _getMethodDescription<M>() << "\t" << "Registering metamethod " << metamethodName);
 						_pushMetatable(L);
 						pushInstanceMethod<M>(L);
@@ -184,6 +199,7 @@ namespace luacpputils {
 
 					template<PtrToMemberFuncType M>
 					static void registerObjectMethod(lua_State * L, const char * methodName) {
+						LUA_USERDATA_STACKCHECKER(checker, L, 0);
 						LUA_USERDATA_VERBOSE("Userdata type " << _getRegistryString << ":\tMethod " << _getMethodDescription<M>() << "\t" << "Registering object method " << methodName);
 						_pushIndexTable(L);
 						pushInstanceMethod<M>(L);
@@ -196,6 +212,7 @@ namespace luacpputils {
 			typedef InstanceMethodHandler<ConstInstanceMethodPtrType> ConstInstanceMethod;
 
 			static PointerToDerivedType pushNewWithLuaParam(lua_State * L) {
+				LUA_USERDATA_STACKCHECKER(checker, L, 1);
 				PointerToDerivedType p;
 				try {
 					p = new DerivedType(L);
@@ -207,6 +224,7 @@ namespace luacpputils {
 			}
 
 			static PointerToDerivedType pushNew(lua_State * L) {
+				LUA_USERDATA_STACKCHECKER(checker, L, 1);
 				PointerToDerivedType p;
 				try {
 					p = new DerivedType();
@@ -219,6 +237,7 @@ namespace luacpputils {
 
 			template<typename T1>
 			static PointerToDerivedType pushNew(lua_State * L, T1 a1) {
+				LUA_USERDATA_STACKCHECKER(checker, L, 1);
 				PointerToDerivedType p;
 				try {
 					p = new DerivedType(a1);
@@ -231,6 +250,7 @@ namespace luacpputils {
 
 			template<typename T1, typename T2>
 			static PointerToDerivedType pushNew(lua_State * L, T1 a1, T2 a2) {
+				LUA_USERDATA_STACKCHECKER(checker, L, 1);
 				PointerToDerivedType p;
 				try {
 					p = new DerivedType(a1, a2);
@@ -243,6 +263,7 @@ namespace luacpputils {
 
 			template<typename T1, typename T2, typename T3>
 			static PointerToDerivedType pushNew(lua_State * L, T1 a1, T2 a2, T3 a3) {
+				LUA_USERDATA_STACKCHECKER(checker, L, 1);
 				PointerToDerivedType p;
 				try {
 					p = new DerivedType(a1, a2, a3);
@@ -254,6 +275,7 @@ namespace luacpputils {
 			}
 
 			static void pushCreatorFunction(lua_State * L) {
+				LUA_USERDATA_STACKCHECKER(checker, L, 1);
 				lua_pushcfunction(L, pushNewWithLuaParam);
 			}
 
@@ -272,6 +294,7 @@ namespace luacpputils {
 
 }
 
+#undef LUA_USERDATA_STACKCHECKER
 #undef LUA_USERDATA_VERBOSE
 
 #endif // INCLUDED_LuaUserdata_h_GUID_52d4ca22_cd5a_420e_b6fd_f46db9eb1f93
