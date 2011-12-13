@@ -1,5 +1,5 @@
 /** @file
-	@brief Header
+	@brief Header for RAII verification of Lua stack top.
 
 	@date 2011
 
@@ -59,34 +59,64 @@ namespace luacpputils {
 		};
 	} // end of namespace StackCheckerErrorPolicies
 
-/// Class providing RAII-style verification that you're leaving the Lua stack
-/// the way you want to leave it.
+	/** @brief RAII-style verification that you're leaving the Lua stack
+		the way you want to leave it.
+
+		To use, just construct an instance in a scope. When that scope is
+		exited, the StackChecker's destructor will verify that the original
+		top index of the stack, plus any expected change, is equal to the
+		current top index of the stack.
+
+		@tparam ErrorPolicy determines the behavior when a mis-match is found.
+	*/
 	template<typename ErrorPolicy = StackCheckerErrorPolicies::LuaError>
 	class StackChecker {
 		public:
+			/// @brief Constructor taking a Lua state and an optional
+			/// expected difference (defaulting to 0).
 			StackChecker(lua_State * L, int difference = 0)
 				: _L(L)
 				, _diff(difference)
 				, _file(NULL)
 				, _line(0)
 				, _top(lua_gettop(L)) {}
+
+			/** @brief Constructor taking a Lua state, filename, line number,
+				and an optional expected difference (defaulting to 0).
+
+				This is designed to be used in conjuction with the built-in
+				preprocessor macros __FILE__ and __LINE__: e.g.,
+				StackChecker<> check(L, __FILE__, __LINE__);
+			*/
 			StackChecker(lua_State * L, const char * file, int line, int difference = 0)
 				: _L(L)
 				, _diff(difference)
 				, _file(file)
 				, _line(line)
 				, _top(lua_gettop(L)) {}
+
+			/// @brief Destructor, which verifies the expected stack state.
 			~StackChecker() {
 				int currentTop = lua_gettop(_L);
 				if (currentTop != _top + _diff) {
 					ErrorPolicy::reportError(_L, _file, _line, _top, _diff, currentTop);
 				}
 			}
+
 		private:
+			/// @brief interpreter state
 			lua_State * _L;
+
+			/// @brief expected difference
 			int _diff;
+
+			/// @brief filename or NULL
 			const char * _file;
+
+			/// @brief line number
 			int _line;
+
+			/// @brief initial top index of the stack
 			int _top;
 	};
 
