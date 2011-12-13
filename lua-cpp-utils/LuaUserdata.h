@@ -272,4 +272,6 @@ namespace luacpputils {
 
 }
 
+#undef LUA_USERDATA_VERBOSE
+
 #endif // INCLUDED_LuaUserdata_h_GUID_52d4ca22_cd5a_420e_b6fd_f46db9eb1f93
