@@ -24,12 +24,13 @@
 // - none
 
 // Library/third-party includes
-#ifdef LUACPP_LUA_INCLUDE
-#include LUACPP_LUA_INCLUDE
+#ifdef LUACPP_LUA_INCLUDE_FULL
+#include LUACPP_LUA_INCLUDE_FULL
 #else
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
+#include <lualib.h>
 }
 #endif
 
