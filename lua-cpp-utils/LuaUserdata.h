@@ -95,7 +95,6 @@ namespace luacpputils {
 					lua_pushcfunction(L, &_gc);
 					lua_setfield(L, -2, gcMetamethodName()); /// table is one below the top of the stack
 					lua_pop(L, 1); /// pop the metatable off the stack.
-					//NonConstInstanceMethod::template registerMetamethod <&Derived::~Derived> (L, );
 					{
 						LUA_USERDATA_STACKCHECKER(derivedchecker, L, 0);
 						Derived::registerAdditionalMetamethods(L);
