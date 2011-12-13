@@ -171,7 +171,7 @@ namespace luacpputils {
 						std::memcpy(&instance, instancePtr, sizeof(PointerToDerivedType));
 
 						LUA_USERDATA_VERBOSE("Userdata " << instance << ":\tMethod " << _getMethodDescription<M>() << "\t" << "Before instance method call with lua_gettop(L)==" << lua_gettop(L));
-						//lua_remove(L, 1); /// remove the instance from the stack, since it's been handled.
+						/// Leaving the instance on the stack in case the method wants access to it.
 						int ret = ((*instance).*(M))(L);
 						LUA_USERDATA_VERBOSE("Userdata " << instance << ":\tMethod " << _getMethodDescription<M>() << "\t" << "After instance method call returning " << ret);
 						return ret;
